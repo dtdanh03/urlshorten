@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -23,6 +24,9 @@ func main() {
 	pattern := configure.String("a", "", "Pattern")
 	destination := configure.String("u", "", "Full destination URL")
 	configureHelp := configure.Bool("h", false, "Help")
+
+	run := flag.NewFlagSet("run", flag.ContinueOnError)
+	port := run.String("p", "8080", "Port")
 
 	flag.Parse()
 
@@ -47,7 +51,7 @@ func main() {
 		case "configure":
 			handleConfigureCommand(configure, pattern, destination, configureHelp)
 		case "run":
-			//start http server
+			handleRunCommand(run, port)
 		}
 	}
 }
@@ -131,4 +135,18 @@ func handleConfigureCommand(flagSet *flag.FlagSet, pattern *string, destination 
 		redirectionMap[*destination] = append(slice, *pattern)
 	}
 	saveRedirectionMap(redirectionMap)
+}
+
+func handleRunCommand(runFlagSet *flag.FlagSet, port *string) {
+
+	err := runFlagSet.Parse(os.Args[2:])
+	if err != nil {
+		return
+	}
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "Welcome to my website!")
+	})
+
+	formattedPortString := fmt.Sprintf(":%s", *port)
+	http.ListenAndServe(formattedPortString, nil)
 }
