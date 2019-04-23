@@ -12,7 +12,7 @@ import (
 )
 
 //RedirectionMap type
-type RedirectionMap map[string][]string
+type RedirectionMap map[string]string
 
 func main() {
 
@@ -81,36 +81,22 @@ func saveRedirectionMap(redirectionMap RedirectionMap) {
 }
 
 func makeEmptyRedirectionMap() RedirectionMap {
-	return make(map[string][]string)
+	return make(map[string]string)
 }
 
 func listMap() {
 	redirectionMap := getRedirectionMap()
-	for key, values := range redirectionMap {
+	for key, value := range redirectionMap {
 		fmt.Printf("%s:\n", key)
-		for _, value := range values {
-			fmt.Println("--", value)
-		}
+		fmt.Println("--", value)
 	}
 
 }
 
 func removeFromMap(pattern string) {
 	redirectionMap := getRedirectionMap()
-	for key, values := range redirectionMap {
-		for index, value := range values {
-			if pattern == value {
-				slice := redirectionMap[key]
-				redirectionMap[key] = append(slice[:index], slice[index+1:]...)
-				if len(redirectionMap[key]) == 0 {
-					delete(redirectionMap, key)
-				}
-				break
-			}
-		}
-	}
+	delete(redirectionMap, pattern)
 	saveRedirectionMap(redirectionMap)
-
 }
 
 func handleConfigureCommand(flagSet *flag.FlagSet, pattern *string, destination *string, help *bool) {
@@ -128,12 +114,7 @@ func handleConfigureCommand(flagSet *flag.FlagSet, pattern *string, destination 
 	}
 
 	redirectionMap := getRedirectionMap()
-	slice := redirectionMap[*destination]
-	if slice == nil {
-		redirectionMap[*destination] = []string{*pattern}
-	} else {
-		redirectionMap[*destination] = append(slice, *pattern)
-	}
+	redirectionMap[*pattern] = *destination
 	saveRedirectionMap(redirectionMap)
 }
 
