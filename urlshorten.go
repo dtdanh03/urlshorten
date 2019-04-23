@@ -90,7 +90,6 @@ func listMap() {
 		fmt.Printf("%s:\n", key)
 		fmt.Println("--", value)
 	}
-
 }
 
 func removeFromMap(pattern string) {
@@ -119,13 +118,19 @@ func handleConfigureCommand(flagSet *flag.FlagSet, pattern *string, destination 
 }
 
 func handleRunCommand(runFlagSet *flag.FlagSet, port *string) {
-
 	err := runFlagSet.Parse(os.Args[2:])
 	if err != nil {
 		return
 	}
+	redirectionMap := getRedirectionMap()
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "Welcome to my website!")
+		fmt.Println(r.URL.Path)
+		if val, ok := redirectionMap[r.URL.Path[1:]]; ok {
+			fmt.Print("Redirecting ...")
+			http.Redirect(w, r, val, 301)
+		} else {
+			fmt.Fprint(w, "Can't find redirection path. This is default screen")
+		}
 	})
 
 	formattedPortString := fmt.Sprintf(":%s", *port)
